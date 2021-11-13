@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const app = express();
 const port = 3000;
 
@@ -23,8 +23,20 @@ app.use('/static', express.static('public'));
 // http://localhost:3000/static/teste.txt
 
 app.get('/hello', (req, res) => {
+  // throw new Error('error'); -> descomentar para testar o error handler da linha 35
   res.send('Hellow World!');
 });
+
+// No Express, as respostas 404 não são o resultado de um erro, portanto, o middleware do manipulador de erros não as capturará. Esse comportamento ocorre porque uma resposta 404 simplesmente indica a ausência de trabalho adicional a ser feito; em outras palavras, o Express executou todas as funções e rotas de middleware e descobriu que nenhuma delas respondeu. Tudo que você precisa fazer é adicionar uma função de middleware na parte inferior da pilha (abaixo de todas as outras funções) para lidar com uma resposta 404:
+app.use((req, res) => {
+  res.status(404).send('Ops! Não foi possível encontrar.');
+});
+
+// Você define o middleware de tratamento de erros da mesma maneira que outro middleware, exceto com quatro argumentos em vez de três; especificamente com a assinatura (err, req, res, next):
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 app.listen(port, () => {
   console.log(`Running at http://localhost:${port}`);
